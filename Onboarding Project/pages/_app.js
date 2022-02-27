@@ -1,4 +1,6 @@
+import 'bootstrap/dist/css/bootstrap.css'
 import '../styles/globals.css'
+import Head from "next/head";
 import {
   ApolloClient,
   createHttpLink,
@@ -9,10 +11,12 @@ import {
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 
+
+
+/* Apollo Setting */
 const httpLink = createHttpLink({
   uri: "https://api.github.com/graphql",
 });
-
 const authLink = setContext((_, { headers }) => {
   console.log('authLink', process.env.NEXT_PUBLIC_GITHUB_ACCESS_TOKEN)
   return {
@@ -22,22 +26,27 @@ const authLink = setContext((_, { headers }) => {
     },
   };
 });
-
 const client = new ApolloClient({
   link: authLink.concat(httpLink),
   cache: new InMemoryCache(),
 });
+/* Apollo Setting */
+
 
 
 function MyApp({ Component, pageProps }) {
-  console.log('NEXT_PUBLIC_GITHUB_ACCESS_TOKEN', process.env.NEXT_PUBLIC_GITHUB_ACCESS_TOKEN);
   const getLayout = Component.getLayout || ((page) => page);
 
   return (
-    <ApolloProvider client={client}>
-      {getLayout(<Component {...pageProps} />)}
-      {/* <Component {...pageProps} /> */}
-    </ApolloProvider>
+    <>
+      <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
+      <ApolloProvider client={client}>
+        {getLayout(<Component {...pageProps} />)}
+        {/* <Component {...pageProps} /> */}
+      </ApolloProvider>
+    </>
   )
 }
 
