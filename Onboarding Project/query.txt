@@ -1,0 +1,36 @@
+
+Get logged in user's repositories
+{
+  user(login: "richardgunawan26") {
+    id
+    repositories(first: 10) {
+      edges {
+        node {
+          id
+          description
+          name
+          url
+          stargazerCount
+        }
+      }
+    }
+  }
+}
+
+
+Get public repositories
+{
+  search(query: "is:public", type: REPOSITORY, first: 5) {
+    edges {
+      node {
+        ... on Repository {
+          id
+          name
+          url
+          stargazerCount
+          description
+        }
+      }
+    }
+  }
+}
