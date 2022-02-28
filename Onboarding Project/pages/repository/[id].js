@@ -10,102 +10,36 @@ import {
 } from "@apollo/client";
 import { useEffect, useState } from "react";
 import { STAR_REPO, UNSTAR_REPO } from "../../GraphQL/Mutations";
-import { LOAD_REPOSITORIY } from "../../GraphQL/Queries";
+import { LOAD_REPOSITORIES, LOAD_REPOSITORIY } from "../../GraphQL/Queries";
 
-export default function Home() {
+const DetailRepository = () => {
+  const [repository, setRepository] = useState()
   const router = useRouter()
   const { id } = router.query
-  console.log('route param', id)
-
-
   const { error, loading, data } = useQuery(LOAD_REPOSITORIY, {
     variables: {
-      repoName: String(id)
-    }
+      id: id,
+    },
   });
-  const [starRepo, { errorStarRepo }] = useMutation(STAR_REPO);
-  const [unstarRepo, { errorUnstarRepo }] = useMutation(UNSTAR_REPO);
-  const [repo, setRepo] = useState()
+  if (error) return `Error! ${error}`;
   
+
   useEffect(() => {
-
-    console.log('data', data)
-
     if (data) {
-      const { user } = data;
-      const repositories = user.repository;
-      setRepo(repositories);
+      const { node } = data;
+      const repo = node;
+      setRepository(repo);
     }
   }, [data]);
 
-  const onStar = async (repo_id) => {
-    starRepo({
-      variables: {
-        starrableId: String(repo_id),
-      },
-    });
-
-    if (errorStarRepo) {
-      console.log(errorStarRepo);
-    }
-  }
-
-  const onUnstar = async (repo_id) => {
-    unstarRepo({
-      variables: {
-        starrableId: String(repo_id),
-      },
-    });
-
-    if (errorUnstarRepo) {
-      console.log(errorUnstarRepo);
-    }
-  };
-
   return (
-    <div className={styles.container}>
-      <Head>
-        <title>Richard Gunawan Onboarding Project</title>
-        <meta name="description" content="GDP Labs Frontend Onboarding Project" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Your Github Page
-        </h1>
-
-        <p className={styles.description}>
-          Richard Gunawan {" "}<a target={"_blank"} href="https://github.com/richardgunawan26">🔗</a>
-        </p>
-
-        <h3>Repository</h3>
-        <div className={styles.card}>
-          <button onClick={() => onStar(repo.id)} className="btn btn-warning mx-1">Star</button>
-          <button onClick={() => onUnstar(repo.id)} className="btn btn-danger mx-1">Unstar</button>
-          <a target={"_blank"} href={repo.url} className="btn btn-success mx-1">Github Page</a>
-          <h2>
-          <Link href={'/repository/' + repo.id}>
-            <a>{repo.name}</a>
-          </Link>
-          </h2>
-          <p>{repo.description ?? "No Description"}</p>
-          <p>🌟 {repo.stargazerCount}</p>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{" "}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
+    <div>
+      <h1>Name : {repository && repository.nameWithOwner}</h1>
+      <h1>Description : {(repository && repository.description) ?? '-'}</h1>
+      <h1>URL : {(repository && repository.url) ?? '-'}</h1>
+      <h1>Issues : {(repository && repository.issues.edges.length) ?? '-'}</h1>
     </div>
   );
 }
+
+export default DetailRepository

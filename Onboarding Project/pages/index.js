@@ -75,9 +75,9 @@ export default function Home() {
                 <button onClick={() => onUnstar(repo.id)} className="btn btn-danger mx-1">Unstar</button>
                 <a target={"_blank"} href={repo.url} className="btn btn-success mx-1">Github Page</a>
                 <h2>
-                <Link href={'/repository/' + repo.id}>
-                  <a>{repo.name}</a>
-                </Link>
+                  <Link href={'/repository/' + repo.id}>
+                    <a>{repo.name}</a>
+                  </Link>
                 </h2>
                 <p>{repo.description ?? "No Description"}</p>
                 <p>🌟 {repo.stargazerCount}</p>
