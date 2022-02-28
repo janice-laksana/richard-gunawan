@@ -28,6 +28,7 @@ export const LOAD_REPOSITORIY = gql`
         nameWithOwner
         name
         url
+        stargazerCount
         issues(first: 10) {
           edges {
             node {

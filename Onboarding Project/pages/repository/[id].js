@@ -22,6 +22,8 @@ const DetailRepository = () => {
     },
   });
   if (error) return `Error! ${error}`;
+  const [starRepo, { errorStarRepo }] = useMutation(STAR_REPO);
+  const [unstarRepo, { errorUnstarRepo }] = useMutation(UNSTAR_REPO);
   
 
   useEffect(() => {
@@ -32,12 +34,64 @@ const DetailRepository = () => {
     }
   }, [data]);
 
+  const onStar = async (repo_id) => {
+    starRepo({
+      variables: {
+        starrableId: String(repo_id),
+      },
+    });
+    if (errorStarRepo) console.log(errorStarRepo);
+  }
+
+  const onUnstar = async (repo_id) => {
+    unstarRepo({
+      variables: {
+        starrableId: String(repo_id),
+      },
+    });
+    if (errorUnstarRepo) console.log(errorUnstarRepo);
+  };
+
   return (
-    <div>
-      <h1>Name : {repository && repository.nameWithOwner}</h1>
-      <h1>Description : {(repository && repository.description) ?? '-'}</h1>
-      <h1>URL : {(repository && repository.url) ?? '-'}</h1>
-      <h1>Issues : {(repository && repository.issues.edges.length) ?? '-'}</h1>
+    <div className={styles.container}>
+
+      <Head>
+        <title>Richard Gunawan Onboarding Project</title>
+        <meta name="description" content="GDP Labs Frontend Onboarding Project" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+
+      <main className={styles.main}>
+        <h1 className={styles.title}>
+          Github Detail Page
+        </h1>
+
+        <h3>Repository</h3>
+        <div className={styles.carddetail}>
+          <button onClick={() => onStar(repository && repository.id)} className="btn btn-warning mx-1">Star</button>
+          <button onClick={() => onUnstar(repository && repository.id)} className="btn btn-danger mx-1">Unstar</button>
+          <a target={"_blank"} href={repository && repository.url} className="btn btn-success mx-1">Github Page</a>
+          <h2>{repository && repository.nameWithOwner}</h2>
+          
+          <p>{repository && repository.description}</p>
+          <p>🌟 {repository && repository.stargazerCount}</p>
+          <p>Issues : {(repository && repository.issues.edges.length) ?? '-'}</p>
+        </div>
+      </main>
+
+      <footer className={styles.footer}>
+        <a
+          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Powered by{" "}
+          <span className={styles.logo}>
+            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
+          </span>
+        </a>
+      </footer>
+
     </div>
   );
 }
