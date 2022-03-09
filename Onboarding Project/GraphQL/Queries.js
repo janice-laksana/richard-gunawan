@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const LOAD_REPOSITORIES = gql`
-  query loadRepositories{
+  query loadRepositories {
     user(login: "richardgunawan26") {
       id
       repositories(first: 10) {
@@ -20,7 +20,7 @@ export const LOAD_REPOSITORIES = gql`
 `;
 
 export const LOAD_REPOSITORIY = gql`
-  query loadRepository($id: ID!){
+  query loadRepository($id: ID!) {
     node(id: $id) {
       ... on Repository {
         id
@@ -33,6 +33,28 @@ export const LOAD_REPOSITORIY = gql`
           edges {
             node {
               id
+              body
+              author {
+                ... on User {
+                  name
+                }
+              }
+              closed
+              closedAt
+              title
+              comments(first: 10) {
+                edges {
+                  node {
+                    id
+                    body
+                    author {
+                      ... on User {
+                        name
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }

@@ -12,7 +12,9 @@ import { LOAD_REPOSITORIES } from "../GraphQL/Queries";
 import { STAR_REPO, UNSTAR_REPO } from "../GraphQL/Mutations";
 
 export default function Home() {
+  // Normal fetching
   const { error, loading, data } = useQuery(LOAD_REPOSITORIES);
+
   const [starRepo, { errorStarRepo }] = useMutation(STAR_REPO);
   const [unstarRepo, { errorUnstarRepo }] = useMutation(UNSTAR_REPO);
   const [repositories, setRepositories] = useState([]);
@@ -50,7 +52,7 @@ export default function Home() {
   };
 
   return (
-    <div className={styles.container}>
+    <div className="container">
       <Head>
         <title>Richard Gunawan Onboarding Project</title>
         <meta name="description" content="GDP Labs Frontend Onboarding Project" />
@@ -65,6 +67,8 @@ export default function Home() {
         <p className={styles.description}>
           Richard Gunawan {" "}<a target={"_blank"} href="https://github.com/richardgunawan26">🔗</a>
         </p>
+        
+        <button className="btn btn-success">Fetch Page 2</button>
 
         <h3>Your repositories</h3>
         <div className={styles.grid}>
