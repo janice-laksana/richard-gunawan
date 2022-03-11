@@ -1,5 +1,34 @@
 import { gql } from "@apollo/client";
 
+export const SEARCH_REPOSITORIES = gql`
+  query searchRepositories($name: String!, $after: String, $before: String, $first: Int, $last: Int) {
+    search(type: REPOSITORY, query: $name, first: $first, last: $last, after: $after, before: $before) {
+      pageInfo {
+        startCursor
+        hasNextPage
+        hasPreviousPage
+        endCursor
+      }
+      repos: edges {
+        repo: node {
+          ... on Repository {
+            id
+            nameWithOwner
+            description
+            url
+            allIssues: issues {
+              totalCount
+            }
+            openIssues: issues(states: OPEN) {
+              totalCount
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
 export const LOAD_REPOSITORIES = gql`
   query loadRepositories {
     user(login: "richardgunawan26") {

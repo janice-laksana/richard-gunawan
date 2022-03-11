@@ -88,18 +88,17 @@ const DetailRepository = () => {
           <p>🌟 {repository && repository.stargazerCount}</p>
           <p>Issues : {(repository && repository.issues.edges.length) ?? '-'}</p>
         </div>
-        <div>
+        <div style={{width: '1000px'}}>
           <h4>List Issues : </h4>
           {issues.length == 0 && <p>No Issues</p>}
           {issues.length > 0 && issues.map((issue) => {
             return (
-              <div key={issue.id} className={styles.cardissue}>
-                <div className={styles.header}>
-                  <span >Richard Gunawan</span>
+              <div key={issue.id} className="card my-1">
+                <div className="card-header">
+                  <span>{issue.author.name}</span>
                 </div>
-                <div className={styles.cardcontent}>
-                  <h4>{issue.title}</h4>
-                  <p>{issue.title}</p>
+                <div className="card-body">
+                  <h5 class="card-title">{issue.title}</h5>
                   
                   <span>Comments : </span>
                   {issue.comments.map((comment) => {

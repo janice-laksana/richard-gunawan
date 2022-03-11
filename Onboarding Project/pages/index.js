@@ -53,12 +53,6 @@ export default function Home() {
 
   return (
     <div className="container">
-      <Head>
-        <title>Richard Gunawan Onboarding Project</title>
-        <meta name="description" content="GDP Labs Frontend Onboarding Project" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
       <main className={styles.main}>
         <h1 className={styles.title}>
           Your Github Page
@@ -67,8 +61,6 @@ export default function Home() {
         <p className={styles.description}>
           Richard Gunawan {" "}<a target={"_blank"} href="https://github.com/richardgunawan26">🔗</a>
         </p>
-        
-        <button className="btn btn-success">Fetch Page 2</button>
 
         <h3>Your repositories</h3>
         <div className={styles.grid}>
