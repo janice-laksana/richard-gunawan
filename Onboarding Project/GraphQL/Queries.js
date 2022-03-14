@@ -39,6 +39,7 @@ export const LOAD_REPOSITORIES = gql`
             id
             description
             name
+            nameWithOwner
             url
             stargazerCount
           }

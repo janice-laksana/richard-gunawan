@@ -8,12 +8,12 @@ import {
   useQuery,
 } from "@apollo/client";
 import { useEffect, useState } from "react";
-import { LOAD_REPOSITORIES } from "../GraphQL/Queries";
+import { LOAD_REPOSITORIES, LOAD_REPOSITORIY } from "../GraphQL/Queries";
 import { STAR_REPO, UNSTAR_REPO } from "../GraphQL/Mutations";
 
 export default function Home() {
   // Normal fetching
-  const { error, loading, data } = useQuery(LOAD_REPOSITORIES);
+  const { error, loading, data, client } = useQuery(LOAD_REPOSITORIES);
 
   const [starRepo, { errorStarRepo }] = useMutation(STAR_REPO);
   const [unstarRepo, { errorUnstarRepo }] = useMutation(UNSTAR_REPO);
@@ -72,7 +72,14 @@ export default function Home() {
                 <a target={"_blank"} href={repo.url} className="btn btn-success mx-1">Github Page</a>
                 <h2>
                   <Link href={'/repository/' + repo.id}>
-                    <a>{repo.name}</a>
+                    <a onMouseOver={() =>
+                      client.query({
+                        query: LOAD_REPOSITORIY,
+                        variables: {
+                          id: repo.id,
+                        },
+                      })
+                    } >{repo.nameWithOwner}</a>
                   </Link>
                 </h2>
                 <p>{repo.description ?? "No Description"}</p>

@@ -3,18 +3,18 @@ This is an onboarding challenge.
 
 ## Requirements
 - Buid your own "GitHub" Web App that allows user to:
-  - Show list of repositories
-  - Star/unstar a repository and show Star count
-  - Subscribe/unsubscribe a repository
-  - Show issues of a repository
+  - [x]  Show list of repositories
+  - [x]  Star/unstar a repository and show Star count
+  - [ ]  Subscribe/unsubscribe a repository
+  - [x]  Show issues of a repository
 - Use Github GraphQL API: https://docs.github.com/en/graphql
 - Your Web App should implements following Apollo features:
-  - Query and Mutate Data
-  - Update to Local State
-  - Optimistic UI
-  - Pagination
-  - Filtering
-  - Data Prefetching
+  - [x]  Query and Mutate Data
+  - [x]  Update to Local State
+  - [ ]  Optimistic UI
+  - [x]  Pagination
+  - [x]  Filtering
+  - [x]  Data Prefetching
 - Use [React](https://reactjs.org/) and [Apollo](https://www.apollographql.com/docs/react/get-started/).
 
 ## Deliverables
