@@ -45,14 +45,14 @@ export default function Repository() {
       <main className={styles.main}>
         <h1 className={styles.title}>Search Repository</h1>
 
-        <form className="row mt-5">
+        <div className="row mt-5">
           <div className="col">
             <input ref={search} type="search" className="form-control" id="search" placeholder="Eg. Computer Vision" />
           </div>
           <div className="col-auto">
             <button onClick={searchRepository} type="button" className="btn btn-dark my-2 my-sm-0">Submit</button>  
           </div>
-        </form>
+        </div>
         <div className="row mt-3">
           {isLoading && <div className="col-auto">
             <div className="spinner-border text-primary" role="status">
