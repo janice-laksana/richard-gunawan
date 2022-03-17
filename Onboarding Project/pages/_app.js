@@ -1,5 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.css'
 import '../styles/globals.css'
+import styles from "../styles/Home.module.css";
 import Head from "next/head";
 import {
   ApolloClient,
@@ -11,6 +12,8 @@ import {
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import Navbar from '../components/Navbar';
+import 'react-toastify/dist/ReactToastify.css';
+import Script from 'next/script';
 
 
 
@@ -31,7 +34,7 @@ const cache = new InMemoryCache({
   typePolicies: {
     Query: {
       fields: {
-        feed: {
+        searchRepositories: {
           keyArgs: [],
           merge(existing, incoming, { args: { offset = 0 }}) {
             // Slicing is necessary because the existing data is
@@ -74,6 +77,16 @@ function MyApp({ Component, pageProps }) {
 
         {getLayout(<Component {...pageProps} />)}
         {/* <Component {...pageProps} /> */}
+
+        <footer className={styles.footer}>
+          GLx Frontend Onboarding Project
+        </footer>
+
+        <Script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+        crossorigin="anonymous"/>
+
       </ApolloProvider>
     </>
   )

@@ -1,8 +1,21 @@
 import { gql } from "@apollo/client";
 
 export const SEARCH_REPOSITORIES = gql`
-  query searchRepositories($name: String!, $after: String, $before: String, $first: Int, $last: Int) {
-    search(type: REPOSITORY, query: $name, first: $first, last: $last, after: $after, before: $before) {
+  query searchRepositories(
+    $name: String!
+    $after: String
+    $before: String
+    $first: Int
+    $last: Int
+  ) {
+    search(
+      type: REPOSITORY
+      query: $name
+      first: $first
+      last: $last
+      after: $after
+      before: $before
+    ) {
       pageInfo {
         startCursor
         hasNextPage
@@ -59,28 +72,26 @@ export const LOAD_REPOSITORIY = gql`
         name
         url
         stargazerCount
-        issues(first: 10) {
+        issues(last: 10, orderBy: { direction: ASC, field: CREATED_AT }) {
           edges {
             node {
               id
-              body
+              createdAt
+              title
               author {
-                ... on User {
-                  name
-                }
+                avatarUrl
+                login
               }
               closed
               closedAt
-              title
+              bodyHTML
               comments(first: 10) {
                 edges {
                   node {
                     id
                     body
                     author {
-                      ... on User {
-                        name
-                      }
+                      login
                     }
                   }
                 }

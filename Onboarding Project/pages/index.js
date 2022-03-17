@@ -11,12 +11,31 @@ import { useEffect, useState } from "react";
 import { LOAD_REPOSITORIES, LOAD_REPOSITORIY } from "../GraphQL/Queries";
 import { STAR_REPO, UNSTAR_REPO } from "../GraphQL/Mutations";
 
+import { ToastContainer, toast } from 'react-toastify';
+
 export default function Home() {
   // Normal fetching
   const { error, loading, data, client } = useQuery(LOAD_REPOSITORIES);
 
-  const [starRepo, { errorStarRepo }] = useMutation(STAR_REPO);
-  const [unstarRepo, { errorUnstarRepo }] = useMutation(UNSTAR_REPO);
+  const onCompletedStar = (data) => {
+    console.log('onCompletedStar', data);
+    toast.success("Starred", {
+      autoClose: 2000,
+    })
+  }
+  const onCompletedUnstar = (data) => {
+    console.log('onCompletedUnstar', data);
+    toast.success("Unstarred", {
+      autoClose: 2000,
+    })
+  }
+
+  const [starRepo, { errorStarRepo }] = useMutation(STAR_REPO, {
+    onCompleted: onCompletedStar,
+  });
+  const [unstarRepo, { errorUnstarRepo }] = useMutation(UNSTAR_REPO, {
+    onCompleted: onCompletedUnstar,
+  });
   const [repositories, setRepositories] = useState([]);
   
   useEffect(() => {
@@ -32,11 +51,18 @@ export default function Home() {
       variables: {
         starrableId: String(repo_id),
       },
+      optimisticResponse: {
+        __typename: "Mutation",
+        addStar: {
+          __typename: "AddStarPayload",
+          starrable: {
+            __typename: "Repository",
+            id: repo_id,
+            stargazerCount: repositories.find((repo) => repo.id === repo_id).stargazerCount + 1,
+          },
+        },
+      }
     });
-
-    if (errorStarRepo) {
-      console.log(errorStarRepo);
-    }
   }
 
   const onUnstar = async (repo_id) => {
@@ -44,12 +70,21 @@ export default function Home() {
       variables: {
         starrableId: String(repo_id),
       },
+      optimisticResponse: {
+        __typename: "Mutation",
+        removeStar: {
+          __typename: "RemoveStarPayload",
+          starrable: {
+            __typename: "Repository",
+            id: repo_id,
+            stargazerCount: repositories.find((repo) => repo.id === repo_id).stargazerCount - 1,
+          },
+        },
+      }
     });
-
-    if (errorUnstarRepo) {
-      console.log(errorUnstarRepo);
-    }
   };
+
+  
 
   return (
     <div className="container">
@@ -62,46 +97,42 @@ export default function Home() {
           Richard Gunawan {" "}<a target={"_blank"} href="https://github.com/richardgunawan26">🔗</a>
         </p>
 
-        <h3>Your repositories</h3>
-        <div className={styles.grid}>
-          {repositories.map((repo) => {
-            return (
-              <div key={repo.id} className={styles.card}>
-                <button onClick={() => onStar(repo.id)} className="btn btn-warning mx-1">Star</button>
-                <button onClick={() => onUnstar(repo.id)} className="btn btn-danger mx-1">Unstar</button>
-                <a target={"_blank"} href={repo.url} className="btn btn-success mx-1">Github Page</a>
-                <h2>
-                  <Link href={'/repository/' + repo.id}>
-                    <a onMouseOver={() =>
-                      client.query({
-                        query: LOAD_REPOSITORIY,
-                        variables: {
-                          id: repo.id,
-                        },
-                      })
-                    } >{repo.nameWithOwner}</a>
-                  </Link>
-                </h2>
-                <p>{repo.description ?? "No Description"}</p>
-                <p>🌟 {repo.stargazerCount}</p>
-              </div>
-            );
-          })}
-        </div>
-      </main>
+        <h3>Your Repositories</h3>
 
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{" "}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
+        {loading && (
+          <div className="spinner-border" role="status">
+          </div>
+        )}
+        {!loading && (
+          <div className={styles.grid}>
+            {repositories.map((repo) => {
+              return (
+                <div key={repo.id} className={styles.card}>
+                  <button onClick={() => onStar(repo.id)} className="btn btn-warning mx-1">Star</button>
+                  <button onClick={() => onUnstar(repo.id)} className="btn btn-danger mx-1">Unstar</button>
+                  <a target={"_blank"} href={repo.url} className="btn btn-success mx-1">Github Page</a>
+                  <h2>
+                    <Link href={'/repository/' + repo.id}>
+                      <a onMouseOver={() =>
+                        client.query({
+                          query: LOAD_REPOSITORIY,
+                          variables: {
+                            id: repo.id,
+                          },
+                        })
+                      } >{repo.nameWithOwner}</a>
+                    </Link>
+                  </h2>
+                  <p>{repo.description ?? "No Description"}</p>
+                  <p>🌟 {repo.stargazerCount}</p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+      </main>
+      <ToastContainer />
     </div>
   );
 }

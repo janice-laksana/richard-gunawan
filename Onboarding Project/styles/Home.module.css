@@ -153,6 +153,11 @@
   margin-left: 0.5rem;
 }
 
+.bodyHtml a {
+  color: #0070f3;
+  text-decoration: none;
+}
+
 @media (max-width: 600px) {
   .grid {
     width: 100%;

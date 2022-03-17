@@ -11,6 +11,8 @@ import {
 import { useEffect, useState } from "react";
 import { STAR_REPO, UNSTAR_REPO } from "../../GraphQL/Mutations";
 import { LOAD_REPOSITORIES, LOAD_REPOSITORIY } from "../../GraphQL/Queries";
+import { ToastContainer, toast } from 'react-toastify';
+import Parser from 'html-react-parser';
 
 const DetailRepository = () => {
   const [repository, setRepository] = useState()
@@ -23,9 +25,27 @@ const DetailRepository = () => {
     },
   });
   if (error) return `Error! ${error}`;
-  const [starRepo, { errorStarRepo }] = useMutation(STAR_REPO);
-  const [unstarRepo, { errorUnstarRepo }] = useMutation(UNSTAR_REPO);
   
+  const onCompletedStar = (data) => {
+    console.log('onCompletedStar', data);
+    toast.success("Starred", {
+      autoClose: 2000,
+    })
+  }
+  const onCompletedUnstar = (data) => {
+    console.log('onCompletedUnstar', data);
+    toast.success("Unstarred", {
+      autoClose: 2000,
+    })
+  }
+  
+  const [starRepo, { errorStarRepo }] = useMutation(STAR_REPO, {
+    onCompleted: onCompletedStar,
+  });
+  const [unstarRepo, { errorUnstarRepo }] = useMutation(UNSTAR_REPO, {
+    onCompleted: onCompletedUnstar,
+  });
+
 
   useEffect(() => {
     if (data) {
@@ -50,6 +70,17 @@ const DetailRepository = () => {
       variables: {
         starrableId: String(repo_id),
       },
+      optimisticResponse: {
+        __typename: "Mutation",
+        addStar: {
+          __typename: "AddStarPayload",
+          starrable: {
+            __typename: "Repository",
+            id: repo_id,
+            stargazerCount: repository.stargazerCount + 1,
+          },
+        },
+      }
     });
     if (errorStarRepo) console.log(errorStarRepo);
   }
@@ -59,6 +90,17 @@ const DetailRepository = () => {
       variables: {
         starrableId: String(repo_id),
       },
+      optimisticResponse: {
+        __typename: "Mutation",
+        removeStar: {
+          __typename: "RemoveStarPayload",
+          starrable: {
+            __typename: "Repository",
+            id: repo_id,
+            stargazerCount: repository.stargazerCount - 1,
+          },
+        },
+      }
     });
     if (errorUnstarRepo) console.log(errorUnstarRepo);
   };
@@ -73,6 +115,9 @@ const DetailRepository = () => {
       </Head>
 
       <main className={styles.main}>
+        <button className="btn btn-secondary btn-sm" type="button" onClick={() => router.back()}>
+          ↩ Click here to go back
+        </button>
         <h1 className={styles.title}>
           Github Detail Page
         </h1>
@@ -92,22 +137,37 @@ const DetailRepository = () => {
           <h4>List Issues : </h4>
           {issues.length == 0 && <p>No Issues</p>}
           {issues.length > 0 && issues.map((issue) => {
+            const badgeStatus = issue.closed == false ? <span className="badge rounded-pill bg-success">Open</span> : <span className="badge rounded-pill bg-danger">Closed</span>;
+
             return (
-              <div key={issue.id} className="card my-1">
+              <div key={issue.id} className="card my-2">
                 <div className="card-header">
-                  <span>{issue.author.name}</span>
+                  <span style={{marginRight: 10}}><img src={issue.author.avatarUrl} width={30} /></span>
+                  <span>{issue.author.login}</span>
                 </div>
                 <div className="card-body">
-                  <h5 class="card-title">{issue.title}</h5>
-                  
-                  <span>Comments : </span>
-                  {issue.comments.map((comment) => {
-                    return (
-                      <ul key={comment.id} className={styles.comments}>
-                        <li>{comment.author.name} : {comment.body}</li>
-                      </ul>
-                    )
-                  })}
+                  <h5 className="card-title">{issue.title} {badgeStatus}</h5>
+                  <p>Created At : {issue.createdAt}</p>
+
+                  <p>
+                    <button className="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target={'#collapse'+issue.id} aria-expanded="false" aria-controls={'collapse'+issue.id}>Open Detail</button>
+                  </p>
+
+                  <div className="collapse" id={'collapse'+issue.id}>
+                    <div className="card card-body">    
+                      <div className="bodyHtml">{Parser(issue.bodyHTML)}</div>
+                      <span>Comments : </span>
+                      {issue.comments.map((comment) => {
+                        return (
+                          <ul key={comment.id} className={styles.comments}>
+                            <li>{comment.author.login} : {comment.body}</li>
+                          </ul>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+
 
                 </div>
               </div>
@@ -116,20 +176,7 @@ const DetailRepository = () => {
         </div>
 
       </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{" "}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
-
+      <ToastContainer />
     </div>
   );
 }
