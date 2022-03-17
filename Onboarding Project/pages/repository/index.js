@@ -16,10 +16,10 @@ export default function Repository() {
   let pageInfo = null;
   let repositories = [];
   if (data) {
+    console.log('data', data);
     isLoading = false;
     repositories = data.search.repos.map(repo => repo.repo);
     pageInfo = data.search.pageInfo;
-    console.log(pageInfo)
   }
 
   const search = useRef("");
