@@ -37,8 +37,6 @@ const cache = new InMemoryCache({
         searchRepositories: {
           keyArgs: [],
           merge(existing, incoming, { args: { offset = 0 }}) {
-            console.log('existing', existing);
-            console.log('incoming', incoming);
             // Slicing is necessary because the existing data is
             // immutable, and frozen in development.
             const merged = existing ? existing.slice(0) : [];
