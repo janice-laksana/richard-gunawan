@@ -10,8 +10,8 @@ This is an onboarding challenge.
 - Use Github GraphQL API: https://docs.github.com/en/graphql
 - Your Web App should implements following Apollo features:
   - [x]  Query and Mutate Data
-  - [x]  Update to Local State
-  - [ ]  Optimistic UI
+  - [ ]  Update to Local State
+  - [x]  Optimistic UI
   - [x]  Pagination
   - [x]  Filtering
   - [x]  Data Prefetching
