@@ -64,7 +64,7 @@ export default function Repository() {
               <h5 className="card-title">{repo.nameWithOwner}</h5>
               <p className="card-text">{repo.description}</p>
               
-              <a href={repo.url} className="btn btn-primary mx-1">Go to Repository URL</a>
+              <a href={repo.url} className="btn btn-primary mx-1" target={'_blank'}>Go to Repository URL</a>
               <Link href={'/repository/' + repo.id}><a className="btn btn-primary mx-1">Go to detail page</a></Link>
             </div>
           </div>

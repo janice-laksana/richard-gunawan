@@ -27,16 +27,20 @@ const DetailRepository = () => {
   if (error) return `Error! ${error}`;
   
   const onCompletedStar = (data) => {
-    console.log('onCompletedStar', data);
-    toast.success("Starred", {
-      autoClose: 2000,
-    })
+    const newStargazerCount = data.addStar.starrable.stargazerCount;
+    if(newStargazerCount === repository.stargazerCount) {
+      toast.warning("Already starred", {autoClose: 2000})
+    } else {
+      toast.success("Starred", {autoClose: 2000})
+    }
   }
   const onCompletedUnstar = (data) => {
-    console.log('onCompletedUnstar', data);
-    toast.success("Unstarred", {
-      autoClose: 2000,
-    })
+    const newStargazerCount = data.removeStar.starrable.stargazerCount;
+    if(newStargazerCount === repository.stargazerCount) {
+      toast.warning("Already unstarred", {autoClose: 2000})
+    } else {
+      toast.success("Unstarred", {autoClose: 2000})
+    }
   }
   
   const [starRepo, { errorStarRepo }] = useMutation(STAR_REPO, {
