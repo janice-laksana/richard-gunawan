@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 
 export default function Repository() {
-  const [getRepositories, { loading, data }] = useLazyQuery(SEARCH_REPOSITORIES);
+  const [getRepositories, { loading, data, fetchMore }] = useLazyQuery(SEARCH_REPOSITORIES);
 
   let isLoading = false;
 
@@ -16,7 +16,6 @@ export default function Repository() {
   let pageInfo = null;
   let repositories = [];
   if (data) {
-    console.log('data', data);
     isLoading = false;
     repositories = data.search.repos.map(repo => repo.repo);
     pageInfo = data.search.pageInfo;
