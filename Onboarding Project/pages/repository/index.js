@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 
 export default function Repository() {
-  const [getRepositories, { loading, data }] = useLazyQuery(SEARCH_REPOSITORIES);
+  const [getRepositories, { loading, data, fetchMore }] = useLazyQuery(SEARCH_REPOSITORIES);
 
   let isLoading = false;
 
@@ -16,7 +16,6 @@ export default function Repository() {
   let pageInfo = null;
   let repositories = [];
   if (data) {
-    console.log('data', data);
     isLoading = false;
     repositories = data.search.repos.map(repo => repo.repo);
     pageInfo = data.search.pageInfo;
@@ -65,7 +64,7 @@ export default function Repository() {
               <h5 className="card-title">{repo.nameWithOwner}</h5>
               <p className="card-text">{repo.description}</p>
               
-              <a href={repo.url} className="btn btn-primary mx-1">Go to Repository URL</a>
+              <a href={repo.url} className="btn btn-primary mx-1" target={'_blank'}>Go to Repository URL</a>
               <Link href={'/repository/' + repo.id}><a className="btn btn-primary mx-1">Go to detail page</a></Link>
             </div>
           </div>

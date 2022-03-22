@@ -16,18 +16,27 @@ import { ToastContainer, toast } from 'react-toastify';
 export default function Home() {
   // Normal fetching
   const { error, loading, data, client } = useQuery(LOAD_REPOSITORIES);
+  const [repositories, setRepositories] = useState([]);
 
   const onCompletedStar = (data) => {
-    console.log('onCompletedStar', data);
-    toast.success("Starred", {
-      autoClose: 2000,
-    })
+    const repository = repositories.find(repo => repo.id === data.addStar.starrable.id);
+
+    const newStargazerCount = data.addStar.starrable.stargazerCount;
+    if(newStargazerCount === repository.stargazerCount) {
+      toast.warning("Already starred", {autoClose: 2000})
+    } else {
+      toast.success("Starred", {autoClose: 2000})
+    }
   }
   const onCompletedUnstar = (data) => {
-    console.log('onCompletedUnstar', data);
-    toast.success("Unstarred", {
-      autoClose: 2000,
-    })
+    const repository = repositories.find(repo => repo.id === data.removeStar.starrable.id);
+
+    const newStargazerCount = data.removeStar.starrable.stargazerCount;
+    if(newStargazerCount === repository.stargazerCount) {
+      toast.warning("Already unstarred", {autoClose: 2000})
+    } else {
+      toast.success("Unstarred", {autoClose: 2000})
+    }
   }
 
   const [starRepo, { errorStarRepo }] = useMutation(STAR_REPO, {
@@ -36,12 +45,12 @@ export default function Home() {
   const [unstarRepo, { errorUnstarRepo }] = useMutation(UNSTAR_REPO, {
     onCompleted: onCompletedUnstar,
   });
-  const [repositories, setRepositories] = useState([]);
   
   useEffect(() => {
     if (data) {
       const { user } = data;
       const repositories = user.repositories.edges.map((edge) => edge.node);
+      console.log('repositories', repositories);
       setRepositories(repositories);
     }
   }, [data]);
