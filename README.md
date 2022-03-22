@@ -5,7 +5,7 @@ This is an onboarding challenge.
 - Buid your own "GitHub" Web App that allows user to:
   - [x]  Show list of repositories
   - [x]  Star/unstar a repository and show Star count
-  - [ ]  Subscribe/unsubscribe a repository
+  - [x]  Subscribe/unsubscribe a repository
   - [x]  Show issues of a repository
 - Use Github GraphQL API: https://docs.github.com/en/graphql
 - Your Web App should implements following Apollo features:
