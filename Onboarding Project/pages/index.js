@@ -9,7 +9,7 @@ import {
 } from "@apollo/client";
 import { useEffect, useState } from "react";
 import { LOAD_REPOSITORIES, LOAD_REPOSITORIY } from "../GraphQL/Queries";
-import { STAR_REPO, UNSTAR_REPO } from "../GraphQL/Mutations";
+import { STAR_REPO, SUBSCRIBE_REPO, UNSTAR_REPO, UNSUBSCRIBE_REPO } from "../GraphQL/Mutations";
 
 import { ToastContainer, toast } from 'react-toastify';
 
@@ -19,9 +19,10 @@ export default function Home() {
   const [repositories, setRepositories] = useState([]);
 
   const onCompletedStar = (data) => {
-    const repository = repositories.find(repo => repo.id === data.addStar.starrable.id);
+    const payload = data.addStar.starrable;
+    const repository = repositories.find(repo => repo.id === payload.id);
 
-    const newStargazerCount = data.addStar.starrable.stargazerCount;
+    const newStargazerCount = payload.stargazerCount;
     if(newStargazerCount === repository.stargazerCount) {
       toast.warning("Already starred", {autoClose: 2000})
     } else {
@@ -29,9 +30,10 @@ export default function Home() {
     }
   }
   const onCompletedUnstar = (data) => {
-    const repository = repositories.find(repo => repo.id === data.removeStar.starrable.id);
+    const payload = data.removeStar.starrable;
+    const repository = repositories.find(repo => repo.id === payload.id);
 
-    const newStargazerCount = data.removeStar.starrable.stargazerCount;
+    const newStargazerCount = payload.stargazerCount;
     if(newStargazerCount === repository.stargazerCount) {
       toast.warning("Already unstarred", {autoClose: 2000})
     } else {
@@ -39,11 +41,27 @@ export default function Home() {
     }
   }
 
+  const onCompleteSubscribe = (data) => {
+    console.log('onCompleteSubscribe', data);
+    toast.success("Subscribed", {autoClose: 2000})
+  }
+
+  const onCompleteUnsubscribe = (data) => {
+    console.log('onCompleteUnsubscribe', data);
+    toast.success("unsubscribed", {autoClose: 2000})
+  }
+
   const [starRepo, { errorStarRepo }] = useMutation(STAR_REPO, {
     onCompleted: onCompletedStar,
   });
   const [unstarRepo, { errorUnstarRepo }] = useMutation(UNSTAR_REPO, {
     onCompleted: onCompletedUnstar,
+  });
+  const [subscribeRepo, { errorSubsribeRepo }] = useMutation(SUBSCRIBE_REPO, {
+    onCompleted: onCompleteSubscribe,
+  });
+  const [unsubscribeRepo, { errorUnsubscribeRepo }] = useMutation(UNSUBSCRIBE_REPO, {
+    onCompleted: onCompleteUnsubscribe,
   });
   
   useEffect(() => {
@@ -56,6 +74,7 @@ export default function Home() {
   }, [data]);
 
   const onStar = async (repo_id) => {
+    const repository = repositories.find((repo) => repo.id === repo_id)
     starRepo({
       variables: {
         starrableId: String(repo_id),
@@ -67,7 +86,8 @@ export default function Home() {
           starrable: {
             __typename: "Repository",
             id: repo_id,
-            stargazerCount: repositories.find((repo) => repo.id === repo_id).stargazerCount + 1,
+            stargazerCount: repository.stargazerCount + 1,
+            viewerHasStarred: !(repository.viewerHasStarred)
           },
         },
       }
@@ -75,6 +95,7 @@ export default function Home() {
   }
 
   const onUnstar = async (repo_id) => {
+    const repository = repositories.find((repo) => repo.id === repo_id)
     unstarRepo({
       variables: {
         starrableId: String(repo_id),
@@ -86,14 +107,70 @@ export default function Home() {
           starrable: {
             __typename: "Repository",
             id: repo_id,
-            stargazerCount: repositories.find((repo) => repo.id === repo_id).stargazerCount - 1,
+            stargazerCount: repository.stargazerCount - 1,
+            viewerHasStarred: !(repository.viewerHasStarred)
           },
         },
       }
     });
   };
 
-  
+  const onSubscribe = async (repo_id) => {
+    const repository = repositories.find((repo) => repo.id === repo_id)
+    subscribeRepo({
+      variables: {
+        subscribableId: String(repo_id),
+      },
+      optimisticResponse: {
+        __typename: "Mutation",
+        updateSubscription: {
+          __typename: "UpdateSubscriptionPayload",
+          subscribable: {
+            __typename: "Repository",
+            viewerSubscription: repository.viewerSubscription == 'SUBSCRIBED' ? 'UNSUBSCRIBED' : 'SUBSCRIBED',
+          },
+        },
+      },
+      update: (proxy, data) => {
+        const newSubscription = data.data.updateSubscription.subscribable.viewerSubscription;
+        
+        let newRepo = repositories.find((repo) => repo.id === repo_id);
+        let idx = repositories.findIndex((repo) => repo.id === repo_id);
+        let objNewRepo = {...newRepo, viewerSubscription: newSubscription};
+        let newRepositories = [...repositories];
+        newRepositories[idx] = objNewRepo;
+        setRepositories(newRepositories);
+      }
+    });
+  }
+  const onUnsubscribe = async (repo_id) => {
+    const repository = repositories.find((repo) => repo.id === repo_id)
+    unsubscribeRepo({
+      variables: {
+        subscribableId: String(repo_id),
+      },
+      optimisticResponse: {
+        __typename: "Mutation",
+        updateSubscription: {
+          __typename: "UpdateSubscriptionPayload",
+          subscribable: {
+            __typename: "Repository",
+            viewerSubscription: repository.viewerSubscription == 'UNSUBSCRIBED' ? 'SUBSCRIBED' : 'UNSUBSCRIBED',
+          },
+        },
+      },
+      update: (proxy, data) => {
+        const newSubscription = data.data.updateSubscription.subscribable.viewerSubscription;
+        
+        let newRepo = repositories.find((repo) => repo.id === repo_id);
+        let idx = repositories.findIndex((repo) => repo.id === repo_id);
+        let objNewRepo = {...newRepo, viewerSubscription: newSubscription};
+        let newRepositories = [...repositories];
+        newRepositories[idx] = objNewRepo;
+        setRepositories(newRepositories);
+      }
+    });
+  }
 
   return (
     <div className="container">
@@ -117,8 +194,13 @@ export default function Home() {
             {repositories.map((repo) => {
               return (
                 <div key={repo.id} className={styles.card}>
-                  <button onClick={() => onStar(repo.id)} className="btn btn-warning mx-1">Star</button>
-                  <button onClick={() => onUnstar(repo.id)} className="btn btn-danger mx-1">Unstar</button>
+                  
+                  {!repo.viewerHasStarred && <button onClick={() => onStar(repo.id)} className="btn btn-warning mx-1">Star</button>}
+                  {repo.viewerHasStarred && <button onClick={() => onUnstar(repo.id)} className="btn btn-danger mx-1">Unstar</button>}
+
+                  {repo.viewerSubscription == 'UNSUBSCRIBED' && <button onClick={() => onSubscribe(repo.id)} className="btn btn-primary mx-1">Subscribe</button>}
+                  {repo.viewerSubscription == 'SUBSCRIBED' && <button onClick={() => onUnsubscribe(repo.id)} className="btn btn-secondary mx-1">Unsubscribe</button>}
+
                   <a target={"_blank"} href={repo.url} className="btn btn-success mx-1">Github Page</a>
                   <h2>
                     <Link href={'/repository/' + repo.id}>
@@ -132,6 +214,7 @@ export default function Home() {
                       } >{repo.nameWithOwner}</a>
                     </Link>
                   </h2>
+                  <span className={'badge rounded-pill ' + (repo.viewerSubscription == 'SUBSCRIBED' ? 'bg-success' : 'bg-danger')}>{repo.viewerSubscription}</span>
                   <p>{repo.description ?? "No Description"}</p>
                   <p>🌟 {repo.stargazerCount}</p>
                 </div>

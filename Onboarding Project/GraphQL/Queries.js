@@ -55,6 +55,8 @@ export const LOAD_REPOSITORIES = gql`
             nameWithOwner
             url
             stargazerCount
+            viewerHasStarred
+            viewerSubscription
           }
         }
       }
@@ -72,6 +74,8 @@ export const LOAD_REPOSITORIY = gql`
         name
         url
         stargazerCount
+        viewerHasStarred
+        viewerSubscription
         issues(last: 10, orderBy: { direction: ASC, field: CREATED_AT }) {
           edges {
             node {
