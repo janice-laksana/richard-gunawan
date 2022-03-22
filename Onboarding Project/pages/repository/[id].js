@@ -9,7 +9,7 @@ import {
   useQuery,
 } from "@apollo/client";
 import { useEffect, useState } from "react";
-import { STAR_REPO, UNSTAR_REPO } from "../../GraphQL/Mutations";
+import { STAR_REPO, SUBSCRIBE_REPO, UNSTAR_REPO, UNSUBSCRIBE_REPO } from "../../GraphQL/Mutations";
 import { LOAD_REPOSITORIES, LOAD_REPOSITORIY } from "../../GraphQL/Queries";
 import { ToastContainer, toast } from 'react-toastify';
 import Parser from 'html-react-parser';
@@ -27,7 +27,8 @@ const DetailRepository = () => {
   if (error) return `Error! ${error}`;
   
   const onCompletedStar = (data) => {
-    const newStargazerCount = data.addStar.starrable.stargazerCount;
+    const payload = data.addStar.starrable;
+    const newStargazerCount = payload.stargazerCount;
     if(newStargazerCount === repository.stargazerCount) {
       toast.warning("Already starred", {autoClose: 2000})
     } else {
@@ -35,12 +36,23 @@ const DetailRepository = () => {
     }
   }
   const onCompletedUnstar = (data) => {
-    const newStargazerCount = data.removeStar.starrable.stargazerCount;
+    const payload = data.removeStar.starrable;
+    const newStargazerCount = payload.stargazerCount;
     if(newStargazerCount === repository.stargazerCount) {
       toast.warning("Already unstarred", {autoClose: 2000})
     } else {
       toast.success("Unstarred", {autoClose: 2000})
     }
+  }
+
+  const onCompleteSubscribe = (data) => {
+    console.log('onCompleteSubscribe', data);
+    toast.success("Subscribed", {autoClose: 2000})
+  }
+
+  const onCompleteUnsubscribe = (data) => {
+    console.log('onCompleteUnsubscribe', data);
+    toast.success("unsubscribed", {autoClose: 2000})
   }
   
   const [starRepo, { errorStarRepo }] = useMutation(STAR_REPO, {
@@ -48,6 +60,12 @@ const DetailRepository = () => {
   });
   const [unstarRepo, { errorUnstarRepo }] = useMutation(UNSTAR_REPO, {
     onCompleted: onCompletedUnstar,
+  });
+  const [subscribeRepo, { errorSubsribeRepo }] = useMutation(SUBSCRIBE_REPO, {
+    onCompleted: onCompleteSubscribe,
+  });
+  const [unsubscribeRepo, { errorUnsubscribeRepo }] = useMutation(UNSUBSCRIBE_REPO, {
+    onCompleted: onCompleteUnsubscribe,
   });
 
 
@@ -82,6 +100,7 @@ const DetailRepository = () => {
             __typename: "Repository",
             id: repo_id,
             stargazerCount: repository.stargazerCount + 1,
+            viewerHasStarred: !(repository.viewerHasStarred)
           },
         },
       }
@@ -102,12 +121,58 @@ const DetailRepository = () => {
             __typename: "Repository",
             id: repo_id,
             stargazerCount: repository.stargazerCount - 1,
+            viewerHasStarred: !(repository.viewerHasStarred)
           },
         },
       }
     });
     if (errorUnstarRepo) console.log(errorUnstarRepo);
   };
+
+  const onSubscribe = async (repo_id) => {
+    subscribeRepo({
+      variables: {
+        subscribableId: String(repo_id),
+      },
+      optimisticResponse: {
+        __typename: "Mutation",
+        updateSubscription: {
+          __typename: "UpdateSubscriptionPayload",
+          subscribable: {
+            __typename: "Repository",
+            viewerSubscription: repository.viewerSubscription == 'SUBSCRIBED' ? 'UNSUBSCRIBED' : 'SUBSCRIBED',
+          },
+        },
+      },
+      update: (proxy, data) => {
+        const newSubscription = data.data.updateSubscription.subscribable.viewerSubscription;
+        let objNewRepo = {...repository, viewerSubscription: newSubscription};
+        setRepository(objNewRepo);
+      }
+    });
+  }
+  const onUnsubscribe = async (repo_id) => {
+    unsubscribeRepo({
+      variables: {
+        subscribableId: String(repo_id),
+      },
+      optimisticResponse: {
+        __typename: "Mutation",
+        updateSubscription: {
+          __typename: "UpdateSubscriptionPayload",
+          subscribable: {
+            __typename: "Repository",
+            viewerSubscription: repository.viewerSubscription == 'UNSUBSCRIBED' ? 'SUBSCRIBED' : 'UNSUBSCRIBED',
+          },
+        },
+      },
+      update: (proxy, data) => {
+        const newSubscription = data.data.updateSubscription.subscribable.viewerSubscription;
+        let objNewRepo = {...repository, viewerSubscription: newSubscription};
+        setRepository(objNewRepo);
+      }
+    });
+  }
 
   return (
     <div className={styles.container}>
@@ -128,11 +193,15 @@ const DetailRepository = () => {
 
         <h3>Repository</h3>
         <div className={styles.carddetail}>
-          <button onClick={() => onStar(repository && repository.id)} className="btn btn-warning mx-1">Star</button>
-          <button onClick={() => onUnstar(repository && repository.id)} className="btn btn-danger mx-1">Unstar</button>
+          {repository && !repository.viewerHasStarred && <button onClick={() => onStar(repository && repository.id)} className="btn btn-warning mx-1">Star</button>}
+          {repository && repository.viewerHasStarred && <button onClick={() => onUnstar(repository && repository.id)} className="btn btn-danger mx-1">Unstar</button>}
+          
+          {repository && repository.viewerSubscription == 'UNSUBSCRIBED' && <button onClick={() => onSubscribe(repository.id)} className="btn btn-primary mx-1">Subscribe</button>}
+          {repository && repository.viewerSubscription == 'SUBSCRIBED' && <button onClick={() => onUnsubscribe(repository.id)} className="btn btn-secondary mx-1">Unsubscribe</button>}
+
           <a target={"_blank"} href={repository && repository.url} className="btn btn-success mx-1">Github Page</a>
           <h2>{repository && repository.nameWithOwner}</h2>
-          
+          {repository && <span className={'badge rounded-pill ' + (repository.viewerSubscription == 'SUBSCRIBED' ? 'bg-success' : 'bg-danger')}>{repository.viewerSubscription}</span>}
           <p>{repository && repository.description}</p>
           <p>🌟 {repository && repository.stargazerCount}</p>
           <p>Issues : {(repository && repository.issues.edges.length) ?? '-'}</p>
@@ -152,11 +221,7 @@ const DetailRepository = () => {
                 <div className="card-body">
                   <h5 className="card-title">{issue.title} {badgeStatus}</h5>
                   <p>Created At : {issue.createdAt}</p>
-
-                  <p>
-                    <button className="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target={'#collapse'+issue.id} aria-expanded="false" aria-controls={'collapse'+issue.id}>Open Detail</button>
-                  </p>
-
+                  <p><button className="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target={'#collapse'+issue.id} aria-expanded="false" aria-controls={'collapse'+issue.id}>Open Detail</button></p>
                   <div className="collapse" id={'collapse'+issue.id}>
                     <div className="card card-body">    
                       <div className="bodyHtml">{Parser(issue.bodyHTML)}</div>
@@ -170,9 +235,6 @@ const DetailRepository = () => {
                       })}
                     </div>
                   </div>
-
-
-
                 </div>
               </div>
             )
